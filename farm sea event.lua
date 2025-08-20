@@ -904,10 +904,7 @@ PvPTab:CreateToggle({
     ----------------------------------------------------------------
     -- Placeholders for the rest of your tabs (unchanged)
     ----------------------------------------------------------------
-    PvPTab:CreateSection("Combat")
-    PvPTab:CreateSection("Protection")
-    PvPTab:CreateSection("Arena")
-    PvPTab:CreateSection("Skills")
+
 
     VisualsTab:CreateSection("ESP")
     VisualsTab:CreateSection("Other Visuals")
