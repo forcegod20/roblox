@@ -1255,15 +1255,87 @@ QuestTab:CreateToggle({
 -- Note / Footer
 QuestTab:CreateLabel("Lemme know if u guys want any other quest")
 
+
+----------------------------------------------------------------
+-- 🍎 Fruit & Raids Tab Content
+----------------------------------------------------------------
+
+-- 🍏 Fruit Section
+local FruitSection = FruitTab:CreateSection("Fruit")
+
+FruitTab:CreateToggle({
+    Name = "Teleport to Fruit",
+    CurrentValue = false,
+    Flag = "TeleportToFruit",
+    Callback = function(Value)
+        print("Teleport to Fruit:", Value)
+    end
+})
+
+FruitTab:CreateToggle({
+    Name = "Auto Store Fruit",
+    CurrentValue = false,
+    Flag = "AutoStoreFruit",
+    Callback = function(Value)
+        print("Auto Store Fruit:", Value)
+    end
+})
+
+FruitTab:CreateToggle({
+    Name = "Auto Random Fruit",
+    CurrentValue = false,
+    Flag = "AutoRandomFruit",
+    Callback = function(Value)
+        print("Auto Random Fruit:", Value)
+    end
+})
+
+-- ⚔️ Raids Section
+local RaidSection = FruitTab:CreateSection("Raids")
+
+FruitTab:CreateToggle({
+    Name = "Auto Start Raid",
+    CurrentValue = false,
+    Flag = "AutoStartRaid",
+    Callback = function(Value)
+        print("Auto Start Raid:", Value)
+    end
+})
+
+FruitTab:CreateToggle({
+    Name = "Auto Complete Raid",
+    CurrentValue = false,
+    Flag = "AutoCompleteRaid",
+    Callback = function(Value)
+        print("Auto Complete Raid:", Value)
+    end
+})
+
+FruitTab:CreateToggle({
+    Name = "Auto Buy Raid Chip",
+    CurrentValue = false,
+    Flag = "AutoBuyRaidChip",
+    Callback = function(Value)
+        print("Auto Buy Raid Chip:", Value)
+    end
+})
+
+FruitTab:CreateDropdown({
+    Name = "Select Fruit for Raid Chip",
+    Options = {"Flame", "Ice", "Quake", "Dark", "Light", "String", "Rumble", "Magma", "Buddha", "Sand", "Phoenix", "Dough"},
+    CurrentOption = "Flame",
+    Flag = "RaidChipFruitDropdown",
+    Callback = function(Option)
+        print("Selected Raid Chip Fruit:", Option)
+    end
+})
+
+
     ----------------------------------------------------------------
     -- Placeholders for the rest of your tabs (unchanged)
     ----------------------------------------------------------------
 
 
-    FruitTab:CreateSection("Fruits")
-    FruitTab:CreateSection("Raids")
-    FruitTab:CreateSection("Fruit Stats")
-    FruitTab:CreateSection("Awakening")
 
     StatusTab:CreateSection("Player Stats")
     StatusTab:CreateSection("Game Stats")
