@@ -967,15 +967,146 @@ VisualsTab:CreateSlider({
 VisualsTab:CreateLabel("More Coming Soon")
 
 
+----------------------------------------------------------------
+-- 🔧 Misc Tab Content — Server Utilities + Debug/Fun (WORKING)
+-- paste this anywhere AFTER `local MiscTab = Window:CreateTab(...)`
+----------------------------------------------------------------
+
+-- ⛓️ Server / Game Utilities
+MiscTab:CreateSection("Server / Game Utilities")
+
+MiscTab:CreateButton({
+    Name = "Rejoin Server",
+    Callback = function()
+        local ts = game:GetService("TeleportService")
+        ts:TeleportToPlaceInstance(game.PlaceId, game.JobId, game.Players.LocalPlayer)
+    end
+})
+
+MiscTab:CreateButton({
+    Name = "Server Hop",
+    Callback = function()
+        task.spawn(function()
+            local HttpService = game:GetService("HttpService")
+            local TeleportService = game:GetService("TeleportService")
+            local url = "https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Asc&limit=100"
+
+            local ok, body = pcall(game.HttpGet, game, url)
+            if not ok then
+                TeleportService:Teleport(game.PlaceId)
+                return
+            end
+
+            local success, decoded = pcall(HttpService.JSONDecode, HttpService, body)
+            local pool = {}
+            if success and decoded and decoded.data then
+                for _, srv in ipairs(decoded.data) do
+                    if srv.id ~= game.JobId and srv.playing < srv.maxPlayers then
+                        table.insert(pool, srv.id)
+                    end
+                end
+            end
+
+            if #pool > 0 then
+                TeleportService:TeleportToPlaceInstance(game.PlaceId, pool[math.random(#pool)], game.Players.LocalPlayer)
+            else
+                TeleportService:Teleport(game.PlaceId)
+            end
+        end)
+    end
+})
+
+-- ⚙️ Debug / Fun Stuff
+MiscTab:CreateSection("Debug / Fun Stuff")
+
+MiscTab:CreateButton({
+    Name = "FPS Booster",
+    Callback = function()
+        local Lighting = game:GetService("Lighting")
+        Lighting.GlobalShadows = false
+        Lighting.FogEnd = 9e9
+        settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
+
+        for _, obj in ipairs(workspace:GetDescendants()) do
+            if obj:IsA("BasePart") then
+                obj.Material = Enum.Material.SmoothPlastic
+                obj.Reflectance = 0
+                obj.CastShadow = false
+            elseif obj:IsA("Decal") or obj:IsA("Texture")
+                or obj:IsA("Trail") or obj:IsA("Beam")
+                or obj:IsA("ParticleEmitter") or obj:IsA("Smoke")
+                or obj:IsA("Fire") then
+                obj:Destroy()
+            end
+        end
+    end
+})
+
+MiscTab:CreateSlider({
+    Name = "Custom FOV",
+    Range = {50, 120},
+    Increment = 1,
+    CurrentValue = (workspace.CurrentCamera and workspace.CurrentCamera.FieldOfView) or 70,
+    Flag = "Hitman_CustomFOV",
+    Callback = function(v)
+        if workspace.CurrentCamera then
+            workspace.CurrentCamera.FieldOfView = v
+        end
+    end
+})
+
+MiscTab:CreateButton({
+    Name = "Remove Laggy Effects",
+    Callback = function()
+        for _, obj in ipairs(workspace:GetDescendants()) do
+            if obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Beam")
+                or obj:IsA("Smoke") or obj:IsA("Fire") then
+                obj:Destroy()
+            end
+        end
+    end
+})
+
+do
+    local AntiAFKConn
+    MiscTab:CreateToggle({
+        Name = "Anti AFK",
+        CurrentValue = false,
+        Flag = "Hitman_AntiAFK",
+        Callback = function(on)
+            if on and not AntiAFKConn then
+                local vu = game:GetService("VirtualUser")
+                AntiAFKConn = game.Players.LocalPlayer.Idled:Connect(function()
+                    vu:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+                    task.wait(1)
+                    vu:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+                end)
+            elseif not on and AntiAFKConn then
+                AntiAFKConn:Disconnect()
+                AntiAFKConn = nil
+            end
+        end
+    })
+end
+
+MiscTab:CreateButton({
+    Name = "Reset Character",
+    Callback = function()
+        local lp = game.Players.LocalPlayer
+        local hum = lp.Character and lp.Character:FindFirstChildOfClass("Humanoid")
+        if hum then
+            hum.Health = 0
+        elseif lp.Character then
+            lp.Character:BreakJoints()
+        end
+    end
+})
+
+
     ----------------------------------------------------------------
     -- Placeholders for the rest of your tabs (unchanged)
     ----------------------------------------------------------------
 
-
-    MiscTab:CreateSection("Movement")
-    MiscTab:CreateSection("Utility")
-    MiscTab:CreateSection("Character")
-    MiscTab:CreateSection("Game Features")
 
     QuestTab:CreateSection("Quests")
     QuestTab:CreateSection("Items")
