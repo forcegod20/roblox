@@ -735,7 +735,26 @@ local function initialize()
         end
     })
 
- 
+ TeleportTab:CreateButton({
+    Name = "Teleport to Temple of Time",
+    Callback = function()
+        local plr = game.Players.LocalPlayer
+        if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+            plr.Character.HumanoidRootPart.CFrame = CFrame.new(3000, 100, 3000) -- replace with real coords
+        end
+    end
+})
+
+TeleportTab:CreateButton({
+    Name = "Teleport to Top of Great Tree",
+    Callback = function()
+        local plr = game.Players.LocalPlayer
+        if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+            plr.Character.HumanoidRootPart.CFrame = CFrame.new(6000, 800, 6000) -- replace with real coords
+        end
+    end
+})
+
 
     ----------------------------------------------------------------
     -- Placeholders for the rest of your tabs (unchanged)
