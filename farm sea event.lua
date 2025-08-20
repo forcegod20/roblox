@@ -626,7 +626,7 @@ local function initialize()
     
     local AmberAmountSlider = IslandEventsTab:CreateSlider({
         Name = "Amber Amount",
-        Range = {1, 30},
+        Range = {1, 25},
         Increment = 1,
         Suffix = "Amber",
         CurrentValue = 5,
@@ -864,7 +864,7 @@ PvPTab:CreateSlider({
 
 PvPTab:CreateSlider({
     Name = "Jump Power",
-    Range = {50, 5000},
+    Range = {50, 500},
     Increment = 10,
     Suffix = " Power",
     CurrentValue = 50,
