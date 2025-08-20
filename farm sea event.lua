@@ -756,6 +756,151 @@ TeleportTab:CreateButton({
 })
 
 
+----------------------------------------------------------------
+-- ⚔️ PvP Tab Content
+----------------------------------------------------------------
+
+-- Combat Section
+local CombatSection = PvPTab:CreateSection("Combat")
+
+PvPTab:CreateToggle({
+    Name = "Auto Shoot",
+    CurrentValue = false,
+    Flag = "AutoShoot",
+    Callback = function(Value)
+        print("Auto Shoot:", Value)
+    end
+})
+
+PvPTab:CreateToggle({
+    Name = "Auto Attack",
+    CurrentValue = false,
+    Flag = "AutoAttack",
+    Callback = function(Value)
+        print("Auto Attack:", Value)
+    end
+})
+
+PvPTab:CreateToggle({
+    Name = "Aim Bot",
+    CurrentValue = false,
+    Flag = "AimBot",
+    Callback = function(Value)
+        print("Aim Bot:", Value)
+    end
+})
+
+PvPTab:CreateToggle({
+    Name = "Aim Bot Skills",
+    CurrentValue = false,
+    Flag = "AimBotSkills",
+    Callback = function(Value)
+        print("Aim Bot Skills:", Value)
+    end
+})
+
+PvPTab:CreateToggle({
+    Name = "Ignores Mobs",
+    CurrentValue = false,
+    Flag = "IgnoreMobs",
+    Callback = function(Value)
+        print("Ignore Mobs:", Value)
+    end
+})
+
+
+-- Player Settings Section
+local PlayerSettingsSection = PvPTab:CreateSection("Player Settings")
+
+PvPTab:CreateSlider({
+    Name = "Player Speed",
+    Range = {20, 200},
+    Increment = 1,
+    Suffix = " Speed",
+    CurrentValue = 20,
+    Flag = "PlayerSpeed",
+    Callback = function(Value)
+        local plr = game.Players.LocalPlayer
+        if plr.Character and plr.Character:FindFirstChildOfClass("Humanoid") then
+            plr.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = Value
+        end
+    end
+})
+
+PvPTab:CreateSlider({
+    Name = "Jump Power",
+    Range = {50, 5000},
+    Increment = 10,
+    Suffix = " Power",
+    CurrentValue = 50,
+    Flag = "JumpPower",
+    Callback = function(Value)
+        local plr = game.Players.LocalPlayer
+        if plr.Character and plr.Character:FindFirstChildOfClass("Humanoid") then
+            plr.Character:FindFirstChildOfClass("Humanoid").JumpPower = Value
+        end
+    end
+})
+
+PvPTab:CreateToggle({
+    Name = "Infinite Jump",
+    CurrentValue = false,
+    Flag = "InfiniteJump",
+    Callback = function(Value)
+        print("Infinite Jump:", Value)
+    end
+})
+
+PvPTab:CreateToggle({
+    Name = "No Clip",
+    CurrentValue = false,
+    Flag = "NoClip",
+    Callback = function(Value)
+        print("No Clip:", Value)
+    end
+})
+
+PvPTab:CreateToggle({
+    Name = "No Stun",
+    CurrentValue = false,
+    Flag = "NoStun",
+    Callback = function(Value)
+        print("No Stun:", Value)
+    end
+})
+
+PvPTab:CreateToggle({
+    Name = "Camera Lock",
+    CurrentValue = false,
+    Flag = "CameraLock",
+    Callback = function(Value)
+        print("Camera Lock:", Value)
+    end
+})
+
+
+-- Race Section
+local RaceSection = PvPTab:CreateSection("Race")
+
+PvPTab:CreateToggle({
+    Name = "Auto on Race V3",
+    CurrentValue = false,
+    Flag = "AutoRaceV3",
+    Callback = function(Value)
+        print("Auto Race V3:", Value)
+    end
+})
+
+PvPTab:CreateToggle({
+    Name = "Auto on Race V4",
+    CurrentValue = false,
+    Flag = "AutoRaceV4",
+    Callback = function(Value)
+        print("Auto Race V4:", Value)
+    end
+})
+
+
     ----------------------------------------------------------------
     -- Placeholders for the rest of your tabs (unchanged)
     ----------------------------------------------------------------
