@@ -1476,12 +1476,6 @@ end)
     ----------------------------------------------------------------
 
 
-
-    StatusTab:CreateSection("Player Stats")
-    StatusTab:CreateSection("Game Stats")
-    StatusTab:CreateSection("Server Info")
-    StatusTab:CreateSection("Performance")
-
     ShopTab:CreateSection("Items")
     ShopTab:CreateSection("Fruits")
     ShopTab:CreateSection("Weapons")
