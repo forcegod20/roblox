@@ -1103,15 +1103,162 @@ MiscTab:CreateButton({
 })
 
 
+----------------------------------------------------------------
+-- 📋 Quest & Items Tab Content (extended)
+----------------------------------------------------------------
+
+-- 🌊 Auto Farms
+QuestTab:CreateToggle({
+    Name = "Auto Farm Factory (2nd Sea)",
+    CurrentValue = false,
+    Flag = "AutoFarmFactory2ndSea",
+    Callback = function(Value)
+        print("Auto Farm Factory:", Value)
+    end
+})
+
+QuestTab:CreateToggle({
+    Name = "Auto Farm Pirate Raid (3rd Sea)",
+    CurrentValue = false,
+    Flag = "AutoFarmPirateRaid3rdSea",
+    Callback = function(Value)
+        print("Auto Farm Pirate Raid:", Value)
+    end
+})
+
+QuestTab:CreateToggle({
+    Name = "Auto Farm Elite Hunter Quest",
+    CurrentValue = false,
+    Flag = "AutoFarmEliteHunter",
+    Callback = function(Value)
+        print("Auto Farm Elite Hunter Quest:", Value)
+    end
+})
+
+-- ⚔️ 3rd Sea Quests Section
+local ThirdSeaQuestSection = QuestTab:CreateSection("3rd Sea Quests")
+
+QuestTab:CreateToggle({
+    Name = "Auto Farm Dough King",
+    CurrentValue = false,
+    Flag = "AutoFarmDoughKing",
+    Callback = function(Value) print("Auto Dough King:", Value) end
+})
+
+QuestTab:CreateToggle({
+    Name = "Auto Farm Cake Prince",
+    CurrentValue = false,
+    Flag = "AutoFarmCakePrince",
+    Callback = function(Value) print("Auto Cake Prince:", Value) end
+})
+
+QuestTab:CreateToggle({
+    Name = "Auto Farm Rip Indra",
+    CurrentValue = false,
+    Flag = "AutoFarmRipIndra",
+    Callback = function(Value) print("Auto Rip Indra:", Value) end
+})
+
+QuestTab:CreateToggle({
+    Name = "Auto Rainbow Haki",
+    CurrentValue = false,
+    Flag = "AutoRainbowHaki",
+    Callback = function(Value) print("Auto Rainbow Haki:", Value) end
+})
+
+QuestTab:CreateToggle({
+    Name = "Auto Citizen Quest",
+    CurrentValue = false,
+    Flag = "AutoCitizenQuest",
+    Callback = function(Value) print("Auto Citizen Quest:", Value) end
+})
+
+QuestTab:CreateToggle({
+    Name = "Auto Tyrant of the Skies Quest",
+    CurrentValue = false,
+    Flag = "AutoTyrantQuest",
+    Callback = function(Value) print("Auto Tyrant Quest:", Value) end
+})
+
+QuestTab:CreateToggle({
+    Name = "Auto Kill Soul Reaper",
+    CurrentValue = false,
+    Flag = "AutoKillSoulReaper",
+    Callback = function(Value) print("Auto Kill Soul Reaper:", Value) end
+})
+
+-- 🗡️ 3rd Sea Items Section
+local ThirdSeaItemsSection = QuestTab:CreateSection("3rd Sea Items")
+
+QuestTab:CreateToggle({
+    Name = "Auto Collect Yama Sword (after 30 Elite Hunter kills)",
+    CurrentValue = false,
+    Flag = "AutoYamaSword",
+    Callback = function(Value) print("Auto Yama Sword:", Value) end
+})
+
+QuestTab:CreateToggle({
+    Name = "Auto Complete Tushita Quest",
+    CurrentValue = false,
+    Flag = "AutoTushitaQuest",
+    Callback = function(Value) print("Auto Tushita Quest:", Value) end
+})
+
+QuestTab:CreateToggle({
+    Name = "Auto CDK Quest",
+    CurrentValue = false,
+    Flag = "AutoCDKQuest",
+    Callback = function(Value) print("Auto CDK Quest:", Value) end
+})
+
+QuestTab:CreateToggle({
+    Name = "Auto Rainbow Haki",
+    CurrentValue = false,
+    Flag = "AutoRainbowHakiItem",
+    Callback = function(Value) print("Auto Rainbow Haki (Item):", Value) end
+})
+
+-- ⚔️ 2nd Sea Quests Section
+local SecondSeaQuestSection = QuestTab:CreateSection("2nd Sea Quests")
+
+QuestTab:CreateToggle({
+    Name = "Auto Kill Don Swan",
+    CurrentValue = false,
+    Flag = "AutoKillDonSwan",
+    Callback = function(Value) print("Auto Kill Don Swan:", Value) end
+})
+
+QuestTab:CreateToggle({
+    Name = "Auto Kill Darkbeard",
+    CurrentValue = false,
+    Flag = "AutoKillDarkbeard",
+    Callback = function(Value) print("Auto Kill Darkbeard:", Value) end
+})
+
+QuestTab:CreateToggle({
+    Name = "Auto Kill Cursed Captain",
+    CurrentValue = false,
+    Flag = "AutoKillCursedCaptain",
+    Callback = function(Value) print("Auto Kill Cursed Captain:", Value) end
+})
+
+-- ⚔️ 1st Sea Quests Section
+local FirstSeaQuestSection = QuestTab:CreateSection("1st Sea Quests")
+
+QuestTab:CreateToggle({
+    Name = "Auto Saber Quest",
+    CurrentValue = false,
+    Flag = "AutoSaberQuest",
+    Callback = function(Value) print("Auto Saber Quest:", Value) end
+})
+
+-- Note / Footer
+QuestTab:CreateLabel("Lemme know if u guys want any other quest")
+
     ----------------------------------------------------------------
     -- Placeholders for the rest of your tabs (unchanged)
     ----------------------------------------------------------------
 
-
-    QuestTab:CreateSection("Quests")
-    QuestTab:CreateSection("Items")
-    QuestTab:CreateSection("Inventory")
-    QuestTab:CreateSection("Trading")
 
     FruitTab:CreateSection("Fruits")
     FruitTab:CreateSection("Raids")
