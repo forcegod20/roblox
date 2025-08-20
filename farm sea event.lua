@@ -735,10 +735,7 @@ local function initialize()
         end
     })
 
-    -- (optional: keep your placeholder sections if you still want them visible)
-    TeleportTab:CreateSection("Bosses")
-    TeleportTab:CreateSection("Players")
-    TeleportTab:CreateSection("Dungeons")
+ 
 
     ----------------------------------------------------------------
     -- Placeholders for the rest of your tabs (unchanged)
