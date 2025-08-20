@@ -901,15 +901,76 @@ PvPTab:CreateToggle({
 })
 
 
+----------------------------------------------------------------
+-- 👁️ Visuals Tab Content (ESP Section)
+----------------------------------------------------------------
+
+local EspSection = VisualsTab:CreateSection("ESP")
+
+VisualsTab:CreateToggle({
+    Name = "ESP Player",
+    CurrentValue = false,
+    Flag = "EspPlayer",
+    Callback = function(Value)
+        print("ESP Player:", Value)
+    end
+})
+
+VisualsTab:CreateToggle({
+    Name = "ESP Fruit",
+    CurrentValue = false,
+    Flag = "EspFruit",
+    Callback = function(Value)
+        print("ESP Fruit:", Value)
+    end
+})
+
+VisualsTab:CreateToggle({
+    Name = "ESP Chest",
+    CurrentValue = false,
+    Flag = "EspChest",
+    Callback = function(Value)
+        print("ESP Chest:", Value)
+    end
+})
+
+VisualsTab:CreateToggle({
+    Name = "ESP Boat",
+    CurrentValue = false,
+    Flag = "EspBoat",
+    Callback = function(Value)
+        print("ESP Boat:", Value)
+    end
+})
+
+VisualsTab:CreateToggle({
+    Name = "ESP Island",
+    CurrentValue = false,
+    Flag = "EspIsland",
+    Callback = function(Value)
+        print("ESP Island:", Value)
+    end
+})
+
+VisualsTab:CreateSlider({
+    Name = "ESP Name Size",
+    Range = {6, 20},
+    Increment = 1,
+    Suffix = " Size",
+    CurrentValue = 12,
+    Flag = "EspNameSize",
+    Callback = function(Value)
+        print("ESP Name Size:", Value)
+    end
+})
+
+VisualsTab:CreateLabel("More Coming Soon")
+
+
     ----------------------------------------------------------------
     -- Placeholders for the rest of your tabs (unchanged)
     ----------------------------------------------------------------
 
-
-    VisualsTab:CreateSection("ESP")
-    VisualsTab:CreateSection("Other Visuals")
-    VisualsTab:CreateSection("Player Visuals")
-    VisualsTab:CreateSection("World Visuals")
 
     MiscTab:CreateSection("Movement")
     MiscTab:CreateSection("Utility")
