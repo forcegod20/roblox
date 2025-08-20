@@ -1365,6 +1365,79 @@ FruitTab:CreateDropdown({
     end
 })
 
+----------------------------------------------------------------
+-- 🛒 Shop Tab
+----------------------------------------------------------------
+
+local ShopMainSection = ShopTab:CreateSection("Main Shop")
+
+-- Refund Stats (2500 Fragments)
+ShopTab:CreateButton({
+    Name = "Refund Stats (2500 Frags)",
+    Callback = function()
+        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("Refund", true)
+    end
+})
+
+-- Race Reroll (3000 Fragments)
+ShopTab:CreateButton({
+    Name = "Race Reroll (3000 Frags)",
+    Callback = function()
+        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BlackbeardReward", "Reroll", "2")
+    end
+})
+
+-- Buy Ghoul Race
+ShopTab:CreateButton({
+    Name = "Buy Ghoul Race",
+    Callback = function()
+        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BuyRace", "Ghoul")
+    end
+})
+
+-- Buy Cyborg Race
+ShopTab:CreateButton({
+    Name = "Buy Cyborg Race",
+    Callback = function()
+        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BuyRace", "Cyborg")
+    end
+})
+
+-- Buy Draco Race
+ShopTab:CreateButton({
+    Name = "Buy Draco Race",
+    Callback = function()
+        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("BuyRace", "Draco")
+    end
+})
+
+----------------------------------------------------------------
+-- 🥊 Fighting Styles Section
+----------------------------------------------------------------
+local FightingStyleSection = ShopTab:CreateSection("Fighting Styles")
+
+-- Fighting Style Buttons
+local FightingStyles = {
+    "Godhuman",
+    "Sanguine Art",
+    "DragonTalon",
+    "ElectricClaw",
+    "DeathStep",
+    "Superhuman",
+    "WaterKungFu",
+    "Electric",
+    "DragonBreath",
+    "DarkStep"
+}
+
+for _, style in ipairs(FightingStyles) do
+    ShopTab:CreateButton({
+        Name = "Buy " .. style,
+        Callback = function()
+            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("Buy" .. style)
+        end
+    })
+end
 
 
 ----------------------------------------------------------------
@@ -1476,10 +1549,7 @@ end)
     ----------------------------------------------------------------
 
 
-    ShopTab:CreateSection("Items")
-    ShopTab:CreateSection("Fruits")
-    ShopTab:CreateSection("Weapons")
-    ShopTab:CreateSection("Accessories")
+  
 
     AboutTab:CreateSection("Information")
     AboutTab:CreateSection("Credits")
