@@ -1574,16 +1574,85 @@ AboutTab:CreateLabel("(Stay tuned for more updates!)")
 
 
 
+----------------------------------------------------------------
+-- ⚙️ Settings Tab Content
+----------------------------------------------------------------
+
+-- 🌙 Theme Changer
+local ThemeDropdown = SettingsTab:CreateDropdown({
+    Name = "Change UI Theme",
+    Options = {"Dark", "Light", "Custom"},
+    CurrentOption = "Dark",
+    Flag = "ThemeDropdown",
+    Callback = function(Option)
+        print("UI Theme changed to:", Option)
+        -- Replace this with your UI theme switch logic
+    end
+})
+
+-- 📁 Config Management
+local SaveButton = SettingsTab:CreateButton({
+    Name = "Save Settings",
+    Callback = function()
+        local HttpService = game:GetService("HttpService")
+        local settings = {Theme = ThemeDropdown.CurrentOption}
+        writefile("HitmanHub_Config.json", HttpService:JSONEncode(settings))
+        print("✅ Settings Saved!")
+    end
+})
+
+local LoadButton = SettingsTab:CreateButton({
+    Name = "Load Settings",
+    Callback = function()
+        local HttpService = game:GetService("HttpService")
+        if isfile("HitmanHub_Config.json") then
+            local data = HttpService:JSONDecode(readfile("HitmanHub_Config.json"))
+            ThemeDropdown:SetOption(data.Theme or "Dark")
+            print("✅ Settings Loaded!")
+        else
+            print("⚠️ No saved settings found.")
+        end
+    end
+})
+
+local ResetButton = SettingsTab:CreateButton({
+    Name = "Reset Settings",
+    Callback = function()
+        if isfile("HitmanHub_Config.json") then
+            delfile("HitmanHub_Config.json")
+            print("🔄 Settings Reset!")
+        else
+            print("⚠️ Nothing to reset.")
+        end
+    end
+})
+
+-- 📊 FPS Counter
+local FpsLabel = SettingsTab:CreateLabel("FPS: calculating...")
+spawn(function()
+    while task.wait(1) do
+        local fps = math.floor(1 / game:GetService("RunService").RenderStepped:Wait())
+        FpsLabel:Set("FPS: " .. fps)
+    end
+end)
+
+-- 🌐 Ping Counter
+local PingLabel = SettingsTab:CreateLabel("Ping: calculating...")
+spawn(function()
+    while task.wait(2) do
+        local ping = game:GetService("Stats").Network.ServerStatsItem["Data Ping"]:GetValueString()
+        PingLabel:Set("Ping: " .. ping)
+    end
+end)
+
+
+
     ----------------------------------------------------------------
     -- Placeholders for the rest of your tabs (unchanged)
     ----------------------------------------------------------------
 
 
 
-    SettingsTab:CreateSection("Configuration")
-    SettingsTab:CreateSection("Themes")
-    SettingsTab:CreateSection("Keybinds")
-    SettingsTab:CreateSection("UI Settings")
 
     -- Success message
     if Rayfield.Notify then
