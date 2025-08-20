@@ -757,6 +757,41 @@ TeleportTab:CreateButton({
 
 
 ----------------------------------------------------------------
+-- 🔮 Teleport Tab (Sea Teleports)
+----------------------------------------------------------------
+local SeaTeleportSection = TeleportTab:CreateSection("Sea Teleports")
+
+TeleportTab:CreateButton({
+    Name = "Teleport to 1st Sea",
+    Callback = function()
+        local TeleportService = game:GetService("TeleportService")
+        local player = game.Players.LocalPlayer
+        TeleportService:Teleport(2753915549, player) -- 1st Sea
+    end
+})
+
+TeleportTab:CreateButton({
+    Name = "Teleport to 2nd Sea",
+    Callback = function()
+        local TeleportService = game:GetService("TeleportService")
+        local player = game.Players.LocalPlayer
+        TeleportService:Teleport(4442272183, player) -- 2nd Sea
+    end
+})
+
+TeleportTab:CreateButton({
+    Name = "Teleport to 3rd Sea",
+    Callback = function()
+        local TeleportService = game:GetService("TeleportService")
+        local player = game.Players.LocalPlayer
+        TeleportService:Teleport(7449423635, player) -- 3rd Sea
+    end
+})
+
+
+
+
+----------------------------------------------------------------
 -- ⚔️ PvP Tab Content
 ----------------------------------------------------------------
 
@@ -1329,6 +1364,111 @@ FruitTab:CreateDropdown({
         print("Selected Raid Chip Fruit:", Option)
     end
 })
+
+
+
+----------------------------------------------------------------
+-- 📊 Status Tab Content (Fixed)
+----------------------------------------------------------------
+
+-- 🟢 Player Stats Section
+local PlayerStatsSection = StatusTab:CreateSection("Player Stats")
+
+local LevelLabel = StatusTab:CreateLabel("Level: Loading...")
+local BountyLabel = StatusTab:CreateLabel("Bounty/Honor: Loading...")
+local RaceLabel = StatusTab:CreateLabel("Race & Version: Loading...")
+local WeaponLabel = StatusTab:CreateLabel("Equipped Weapon: Loading...")
+
+-- 🟢 Islands Status Section
+local IslandSection = StatusTab:CreateSection("Islands Status")
+
+local MirageLabel = StatusTab:CreateLabel("Mirage Island: Not Detected")
+local KitsuneLabel = StatusTab:CreateLabel("Kitsune Island: Not Detected")
+local PrehistoricLabel = StatusTab:CreateLabel("Prehistoric Island: Not Detected")
+
+-- 🟢 Server Info Section
+local ServerSection = StatusTab:CreateSection("Server Info")
+
+local PlayersLabel = StatusTab:CreateLabel("Players in Server: Loading...")
+local OptionsLabel = StatusTab:CreateLabel("Options Enabled: 0")
+local DoughKingLabel = StatusTab:CreateLabel("Kills to spawn Dough King: Loading...")
+local CakePrinceLabel = StatusTab:CreateLabel("Kills to spawn Cake Prince: Loading...")
+local EliteHunterLabel = StatusTab:CreateLabel("Elite Hunters Killed: Loading...")
+local FruitSpawnLabel = StatusTab:CreateLabel("Fruit Spawned: None")
+local FullMoonLabel = StatusTab:CreateLabel("Time until Full Moon: Loading...")
+local ServerAgeLabel = StatusTab:CreateLabel("Server Age: Loading...")
+
+----------------------------------------------------------------
+-- ✅ Fix: Track toggles globally
+----------------------------------------------------------------
+getgenv().ToggleStates = getgenv().ToggleStates or {}
+
+-- Wrapper function for toggles
+function CreateToggle(tab, args)
+    local t = tab:CreateToggle({
+        Name = args.Name,
+        CurrentValue = args.CurrentValue or false,
+        Flag = args.Flag or args.Name,
+        Callback = function(Value)
+            getgenv().ToggleStates[args.Flag or args.Name] = Value
+            if args.Callback then
+                args.Callback(Value)
+            end
+        end
+    })
+    return t
+end
+
+-- Helper to count toggles ON
+local function CountToggles()
+    local count = 0
+    for _, v in pairs(getgenv().ToggleStates) do
+        if v == true then
+            count += 1
+        end
+    end
+    return count
+end
+
+----------------------------------------------------------------
+-- 🔄 Auto Updating Loop
+----------------------------------------------------------------
+task.spawn(function()
+    while task.wait(3) do
+        -- Player Info
+        pcall(function()
+            LevelLabel:Set("Level: " .. game.Players.LocalPlayer.Data.Level.Value)
+            BountyLabel:Set("Bounty/Honor: " .. game.Players.LocalPlayer.leaderstats["Bounty/Honor"].Value)
+            RaceLabel:Set("Race & Version: " .. tostring(game.Players.LocalPlayer.Data.Race.Value) .. " V" .. tostring(game.Players.LocalPlayer.Data.RaceAwakening.Value))
+            WeaponLabel:Set("Equipped Weapon: " .. (game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool") and game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool").Name or "None"))
+        end)
+
+        -- Islands (placeholder logic – replace with your detection)
+        MirageLabel:Set("Mirage Island: Not Spawned")
+        KitsuneLabel:Set("Kitsune Island: Not Spawned")
+        PrehistoricLabel:Set("Prehistoric Island: Not Spawned")
+
+        -- Server Info
+        PlayersLabel:Set("Players in Server: " .. #game.Players:GetPlayers())
+        OptionsLabel:Set("Options Enabled: " .. tostring(CountToggles()))
+
+        -- 🌊 Sea-based quest counters
+        local sea = game.PlaceId
+        if sea == 7449423635 then -- 3rd Sea PlaceID (replace with actual if different)
+            DoughKingLabel:Set("Kills to spawn Dough King: " .. tostring(500)) -- replace with tracker
+            CakePrinceLabel:Set("Kills to spawn Cake Prince: " .. tostring(500)) -- replace with tracker
+            EliteHunterLabel:Set("Elite Hunters Killed: " .. tostring(0)) -- replace with tracker
+        else
+            DoughKingLabel:Set("Kills to spawn Dough King: (Go to 3rd Sea)")
+            CakePrinceLabel:Set("Kills to spawn Cake Prince: (Go to 3rd Sea)")
+            EliteHunterLabel:Set("Elite Hunters Killed: (Go to 3rd Sea)")
+        end
+
+        FruitSpawnLabel:Set("Fruit Spawned: None") -- replace with fruit detection
+        FullMoonLabel:Set("Time until Full Moon: " .. tostring("1h 20m")) -- replace with real moon calc
+        ServerAgeLabel:Set("Server Age: " .. string.format("%d minutes", math.floor(workspace.DistributedGameTime/60)))
+    end
+end)
 
 
     ----------------------------------------------------------------
