@@ -1544,17 +1544,41 @@ task.spawn(function()
 end)
 
 
+----------------------------------------------------------------
+-- ℹ️ About Tab
+----------------------------------------------------------------
+local AboutSection = AboutTab:CreateSection("About This Script")
+
+AboutTab:CreateLabel("Developed by HitmanHub with expert collaboration from White Devil and Brooken 🤝")
+AboutTab:CreateLabel("High-quality script built with clean, modular code and optimized performance ⚡")
+AboutTab:CreateLabel("Designed for seamless integration and advanced automation workflows 🔧")
+AboutTab:CreateLabel("Combines innovation, technical excellence, and reliability for powerful task execution 🚀")
+
+AboutTab:CreateLabel("────────────────────────────")
+
+AboutTab:CreateLabel("Join our Discord Community:")
+
+AboutTab:CreateButton({
+    Name = "Join Discord",
+    Callback = function()
+        setclipboard("https://discord.gg/ea2hRcH3Ht")
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = "Discord",
+            Text = "Permanent Discord link copied to clipboard!",
+            Duration = 5
+        })
+    end
+})
+
+AboutTab:CreateLabel("(Stay tuned for more updates!)")
+
+
+
     ----------------------------------------------------------------
     -- Placeholders for the rest of your tabs (unchanged)
     ----------------------------------------------------------------
 
 
-  
-
-    AboutTab:CreateSection("Information")
-    AboutTab:CreateSection("Credits")
-    AboutTab:CreateSection("Updates")
-    AboutTab:CreateSection("Support")
 
     SettingsTab:CreateSection("Configuration")
     SettingsTab:CreateSection("Themes")
