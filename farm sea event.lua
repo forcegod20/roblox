@@ -1136,9 +1136,8 @@ end)
 ----------------------------------------------------------------
 
 -- 📌 ESP GUI FULLY FUNCTIONAL
--- ✅ ESP (Player untouched, Fruit now shows exact name, others fixed)
+-- ✅ ESP (Player untouched, Fruit shows exact name, all with distance)
 
--- ✅ Optimized ESP System (no more freeze)
 local EspSection = VisualsTab:CreateSection("ESP")
 
 local espNameSize = 12
@@ -1151,7 +1150,7 @@ local espEnabled = {
 }
 local espObjects = {}
 
--- Cleanup
+-- Cleanup ESPs
 local function clearEsp(type)
     if espObjects[type] then
         for _, gui in pairs(espObjects[type]) do
@@ -1161,9 +1160,10 @@ local function clearEsp(type)
     espObjects[type] = {}
 end
 
--- Create Billboard
-local function makeBillboard(obj, text, type)
+-- Create Billboard with distance updater
+local function makeBillboard(obj, displayName, type)
     if not obj or not obj:IsA("BasePart") then return end
+
     local bb = Instance.new("BillboardGui")
     bb.Adornee = obj
     bb.Size = UDim2.new(0,200,0,50)
@@ -1171,19 +1171,32 @@ local function makeBillboard(obj, text, type)
     bb.Parent = obj
 
     local label = Instance.new("TextLabel")
+    label.Name = "EspLabel"
     label.Size = UDim2.new(1,0,1,0)
     label.BackgroundTransparency = 1
-    label.Text = text
+    label.Text = displayName
     label.TextColor3 = Color3.new(1,1,1)
     label.TextStrokeTransparency = 0
     label.Font = Enum.Font.SourceSansBold
     label.TextSize = espNameSize
     label.Parent = bb
 
+    -- Update distance every frame
+    task.spawn(function()
+        while bb.Parent and espEnabled[type] do
+            local lp = game.Players.LocalPlayer
+            if lp and lp.Character and lp.Character:FindFirstChild("HumanoidRootPart") then
+                local dist = math.floor((lp.Character.HumanoidRootPart.Position - obj.Position).Magnitude)
+                label.Text = string.format("%s (%dm)", displayName, dist)
+            end
+            task.wait(0.2) -- update every 0.2s
+        end
+    end)
+
     table.insert(espObjects[type], bb)
 end
 
--- Update ESP Types
+-- Enable ESP
 local function enableEsp(type, state)
     espEnabled[type] = state
     clearEsp(type)
@@ -1192,8 +1205,7 @@ local function enableEsp(type, state)
     if type == "Player" then
         for _, plr in pairs(game.Players:GetPlayers()) do
             if plr ~= game.Players.LocalPlayer and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-                local hrp = plr.Character.HumanoidRootPart
-                makeBillboard(hrp, plr.Name, "Player")
+                makeBillboard(plr.Character.HumanoidRootPart, plr.Name, "Player")
             end
         end
         game.Players.PlayerAdded:Connect(function(plr)
@@ -1205,50 +1217,42 @@ local function enableEsp(type, state)
             end)
         end)
 
-    elseif type == "Fruit" then
-        if workspace:FindFirstChild("Fruit") then
-            for _, fruit in pairs(workspace.Fruit:GetChildren()) do
-                if fruit:FindFirstChild("Handle") then
-                    makeBillboard(fruit.Handle, "🍎 "..fruit.Name, "Fruit")
-                end
+    elseif type == "Fruit" and workspace:FindFirstChild("Fruit") then
+        for _, fruit in pairs(workspace.Fruit:GetChildren()) do
+            if fruit:FindFirstChild("Handle") then
+                makeBillboard(fruit.Handle, "🍎 "..fruit.Name, "Fruit")
             end
-            workspace.Fruit.ChildAdded:Connect(function(fruit)
-                if espEnabled.Fruit and fruit:FindFirstChild("Handle") then
-                    makeBillboard(fruit.Handle, "🍎 "..fruit.Name, "Fruit")
-                end
-            end)
         end
+        workspace.Fruit.ChildAdded:Connect(function(fruit)
+            if espEnabled.Fruit and fruit:FindFirstChild("Handle") then
+                makeBillboard(fruit.Handle, "🍎 "..fruit.Name, "Fruit")
+            end
+        end)
 
-    elseif type == "Chest" then
-        if workspace:FindFirstChild("Chests") then
-            for _, chest in pairs(workspace.Chests:GetChildren()) do
-                if chest:FindFirstChild("HumanoidRootPart") then
-                    makeBillboard(chest.HumanoidRootPart, "💰 "..chest.Name, "Chest")
-                end
+    elseif type == "Chest" and workspace:FindFirstChild("Chests") then
+        for _, chest in pairs(workspace.Chests:GetChildren()) do
+            if chest:FindFirstChild("HumanoidRootPart") then
+                makeBillboard(chest.HumanoidRootPart, "💰 "..chest.Name, "Chest")
             end
         end
 
-    elseif type == "Boat" then
-        if workspace:FindFirstChild("Boats") then
-            for _, boat in pairs(workspace.Boats:GetChildren()) do
-                if boat:FindFirstChild("HumanoidRootPart") then
-                    makeBillboard(boat.HumanoidRootPart, "⛵ "..boat.Name, "Boat")
-                end
+    elseif type == "Boat" and workspace:FindFirstChild("Boats") then
+        for _, boat in pairs(workspace.Boats:GetChildren()) do
+            if boat:FindFirstChild("HumanoidRootPart") then
+                makeBillboard(boat.HumanoidRootPart, "⛵ "..boat.Name, "Boat")
             end
         end
 
-    elseif type == "Island" then
-        if workspace:FindFirstChild("Islands") then
-            for _, island in pairs(workspace.Islands:GetChildren()) do
-                if island:FindFirstChild("HumanoidRootPart") then
-                    makeBillboard(island.HumanoidRootPart, "🏝️ "..island.Name, "Island")
-                end
+    elseif type == "Island" and workspace:FindFirstChild("Islands") then
+        for _, island in pairs(workspace.Islands:GetChildren()) do
+            if island:FindFirstChild("HumanoidRootPart") then
+                makeBillboard(island.HumanoidRootPart, "🏝️ "..island.Name, "Island")
             end
         end
     end
 end
 
--- GUI Bindings
+-- GUI Toggles
 VisualsTab:CreateToggle({
     Name = "ESP Player",
     CurrentValue = false,
@@ -1294,13 +1298,14 @@ VisualsTab:CreateSlider({
         espNameSize = Value
         for type, list in pairs(espObjects) do
             for _, bb in pairs(list) do
-                if bb:FindFirstChild("TextLabel") then
-                    bb.TextLabel.TextSize = Value
+                if bb:FindFirstChild("EspLabel") then
+                    bb.EspLabel.TextSize = Value
                 end
             end
         end
     end
 })
+
 
 
 VisualsTab:CreateLabel("More Coming Soon")
