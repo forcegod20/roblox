@@ -1135,64 +1135,173 @@ end)
 -- 👁️ Visuals Tab Content (ESP Section)
 ----------------------------------------------------------------
 
+-- 📌 ESP GUI FULLY FUNCTIONAL
+-- ✅ ESP (Player untouched, Fruit now shows exact name, others fixed)
+
+-- ✅ Optimized ESP System (no more freeze)
 local EspSection = VisualsTab:CreateSection("ESP")
 
+local espNameSize = 12
+local espEnabled = {
+    Player = false,
+    Fruit = false,
+    Chest = false,
+    Boat = false,
+    Island = false
+}
+local espObjects = {}
+
+-- Cleanup
+local function clearEsp(type)
+    if espObjects[type] then
+        for _, gui in pairs(espObjects[type]) do
+            if gui and gui.Parent then gui:Destroy() end
+        end
+    end
+    espObjects[type] = {}
+end
+
+-- Create Billboard
+local function makeBillboard(obj, text, type)
+    if not obj or not obj:IsA("BasePart") then return end
+    local bb = Instance.new("BillboardGui")
+    bb.Adornee = obj
+    bb.Size = UDim2.new(0,200,0,50)
+    bb.AlwaysOnTop = true
+    bb.Parent = obj
+
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1,0,1,0)
+    label.BackgroundTransparency = 1
+    label.Text = text
+    label.TextColor3 = Color3.new(1,1,1)
+    label.TextStrokeTransparency = 0
+    label.Font = Enum.Font.SourceSansBold
+    label.TextSize = espNameSize
+    label.Parent = bb
+
+    table.insert(espObjects[type], bb)
+end
+
+-- Update ESP Types
+local function enableEsp(type, state)
+    espEnabled[type] = state
+    clearEsp(type)
+    if not state then return end
+
+    if type == "Player" then
+        for _, plr in pairs(game.Players:GetPlayers()) do
+            if plr ~= game.Players.LocalPlayer and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+                local hrp = plr.Character.HumanoidRootPart
+                makeBillboard(hrp, plr.Name, "Player")
+            end
+        end
+        game.Players.PlayerAdded:Connect(function(plr)
+            plr.CharacterAdded:Connect(function(char)
+                task.wait(1)
+                if espEnabled.Player and char:FindFirstChild("HumanoidRootPart") then
+                    makeBillboard(char.HumanoidRootPart, plr.Name, "Player")
+                end
+            end)
+        end)
+
+    elseif type == "Fruit" then
+        if workspace:FindFirstChild("Fruit") then
+            for _, fruit in pairs(workspace.Fruit:GetChildren()) do
+                if fruit:FindFirstChild("Handle") then
+                    makeBillboard(fruit.Handle, "🍎 "..fruit.Name, "Fruit")
+                end
+            end
+            workspace.Fruit.ChildAdded:Connect(function(fruit)
+                if espEnabled.Fruit and fruit:FindFirstChild("Handle") then
+                    makeBillboard(fruit.Handle, "🍎 "..fruit.Name, "Fruit")
+                end
+            end)
+        end
+
+    elseif type == "Chest" then
+        if workspace:FindFirstChild("Chests") then
+            for _, chest in pairs(workspace.Chests:GetChildren()) do
+                if chest:FindFirstChild("HumanoidRootPart") then
+                    makeBillboard(chest.HumanoidRootPart, "💰 "..chest.Name, "Chest")
+                end
+            end
+        end
+
+    elseif type == "Boat" then
+        if workspace:FindFirstChild("Boats") then
+            for _, boat in pairs(workspace.Boats:GetChildren()) do
+                if boat:FindFirstChild("HumanoidRootPart") then
+                    makeBillboard(boat.HumanoidRootPart, "⛵ "..boat.Name, "Boat")
+                end
+            end
+        end
+
+    elseif type == "Island" then
+        if workspace:FindFirstChild("Islands") then
+            for _, island in pairs(workspace.Islands:GetChildren()) do
+                if island:FindFirstChild("HumanoidRootPart") then
+                    makeBillboard(island.HumanoidRootPart, "🏝️ "..island.Name, "Island")
+                end
+            end
+        end
+    end
+end
+
+-- GUI Bindings
 VisualsTab:CreateToggle({
     Name = "ESP Player",
     CurrentValue = false,
     Flag = "EspPlayer",
-    Callback = function(Value)
-        print("ESP Player:", Value)
-    end
+    Callback = function(Value) enableEsp("Player", Value) end
 })
 
 VisualsTab:CreateToggle({
     Name = "ESP Fruit",
     CurrentValue = false,
     Flag = "EspFruit",
-    Callback = function(Value)
-        print("ESP Fruit:", Value)
-    end
+    Callback = function(Value) enableEsp("Fruit", Value) end
 })
 
 VisualsTab:CreateToggle({
     Name = "ESP Chest",
     CurrentValue = false,
     Flag = "EspChest",
-    Callback = function(Value)
-        print("ESP Chest:", Value)
-    end
+    Callback = function(Value) enableEsp("Chest", Value) end
 })
 
 VisualsTab:CreateToggle({
     Name = "ESP Boat",
     CurrentValue = false,
     Flag = "EspBoat",
-    Callback = function(Value)
-        print("ESP Boat:", Value)
-    end
+    Callback = function(Value) enableEsp("Boat", Value) end
 })
 
 VisualsTab:CreateToggle({
     Name = "ESP Island",
     CurrentValue = false,
     Flag = "EspIsland",
-    Callback = function(Value)
-        print("ESP Island:", Value)
-    end
+    Callback = function(Value) enableEsp("Island", Value) end
 })
 
 VisualsTab:CreateSlider({
     Name = "ESP Name Size",
-    Range = {6, 20},
+    Range = {6,20},
     Increment = 1,
-    Suffix = " Size",
     CurrentValue = 12,
     Flag = "EspNameSize",
     Callback = function(Value)
-        print("ESP Name Size:", Value)
+        espNameSize = Value
+        for type, list in pairs(espObjects) do
+            for _, bb in pairs(list) do
+                if bb:FindFirstChild("TextLabel") then
+                    bb.TextLabel.TextSize = Value
+                end
+            end
+        end
     end
 })
+
 
 VisualsTab:CreateLabel("More Coming Soon")
 
