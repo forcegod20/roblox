@@ -962,8 +962,11 @@ PvPTab:CreateSlider({
     end
 })
 
--- Infinite Jump
+-- ==== INFINITE JUMP ====
 local UserInputService = game:GetService("UserInputService")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
 local infiniteJumpEnabled = false
 
 PvPTab:CreateToggle({
@@ -975,14 +978,14 @@ PvPTab:CreateToggle({
     end
 })
 
+-- Listen for jump requests
 UserInputService.JumpRequest:Connect(function()
-    if infiniteJumpEnabled then
-        local plr = game.Players.LocalPlayer
-        if plr.Character and plr.Character:FindFirstChildOfClass("Humanoid") then
-            plr.Character:FindFirstChildOfClass("Humanoid"):ChangeState(Enum.HumanoidStateType.Jumping)
-        end
+    if infiniteJumpEnabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
+        LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState(Enum.HumanoidStateType.Jumping)
     end
 end)
+
+
 
 -- No Clip
 local noclipEnabled = false
@@ -1071,23 +1074,61 @@ end)
 -- Race Section
 local RaceSection = PvPTab:CreateSection("Race")
 
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local VirtualUser = game:GetService("VirtualUser")
+local LocalPlayer = Players.LocalPlayer
+
+local autoRaceV3 = false
+local autoRaceV4 = false
+local lastV3 = 0
+
+-- Utility: Simulate key press
+local function pressKey(key)
+    VirtualUser:CaptureController()
+    VirtualUser:SetKeyDown(key:lower())
+    task.wait(0.1)
+    VirtualUser:SetKeyUp(key:lower())
+end
+
+-- ✅ Auto Race V3 Toggle
 PvPTab:CreateToggle({
     Name = "Auto on Race V3",
     CurrentValue = false,
     Flag = "AutoRaceV3",
     Callback = function(Value)
-        print("Auto Race V3:", Value)
+        autoRaceV3 = Value
     end
 })
 
+-- ✅ Auto Race V4 Toggle
 PvPTab:CreateToggle({
     Name = "Auto on Race V4",
     CurrentValue = false,
     Flag = "AutoRaceV4",
     Callback = function(Value)
-        print("Auto Race V4:", Value)
+        autoRaceV4 = Value
     end
 })
+
+-- Loop for Auto Activation
+RunService.Heartbeat:Connect(function()
+    local char = LocalPlayer.Character
+    if not char then return end
+
+    -- 🔹 V3: Smart spam every 5 seconds
+    if autoRaceV3 and LocalPlayer:FindFirstChild("RaceV3") then
+        if tick() - lastV3 > 5 then
+            pressKey("T") -- V3 transform key
+            lastV3 = tick()
+        end
+    end
+
+    -- 🔹 V4: Always ON if unlocked
+    if autoRaceV4 and LocalPlayer:FindFirstChild("RaceV4") then
+        pressKey("Y") -- V4 transform key
+    end
+end)
 
 
 ----------------------------------------------------------------
