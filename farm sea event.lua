@@ -469,25 +469,104 @@ local function initialize()
         end,
     })
 
-    local AdditionalFeaturesSection = SeaEventsTab:CreateSection("Additional Features")
+ local AdditionalFeaturesSection = SeaEventsTab:CreateSection("Additional Features")
 
-    local RemoveFogToggle = SeaEventsTab:CreateToggle({
-        Name = "Remove Fog",
-        CurrentValue = false,
-        Flag = "RemoveFogToggle",
-        Callback = function(Value)
-            print("Remove Fog:", Value)
-        end,
-    })
+-- 🌫 Remove Fog
+local Lighting = game:GetService("Lighting")
+local function setFog(enabled)
+    if enabled then
+        Lighting.FogEnd = 1000000
+        Lighting.FogStart = 0
+        if Lighting:FindFirstChildOfClass("Atmosphere") then
+            Lighting:FindFirstChildOfClass("Atmosphere"):Destroy()
+        end
+    else
+        -- Default values (adjust if your game has specific)
+        Lighting.FogEnd = 1000
+        Lighting.FogStart = 0
+    end
+end
 
-    local WalkOnWaterToggle = SeaEventsTab:CreateToggle({
-        Name = "Walk on Water",
-        CurrentValue = false,
-        Flag = "WalkOnWaterToggle",
-        Callback = function(Value)
-            print("Walk on Water:", Value)
-        end,
-    })
+local RemoveFogToggle = SeaEventsTab:CreateToggle({
+    Name = "Remove Fog",
+    CurrentValue = false,
+    Flag = "RemoveFogToggle",
+    Callback = function(Value)
+        setFog(Value)
+    end,
+})
+
+-- 🌊 Walk on Water
+local RunService = game:GetService("RunService")
+local waterPart = nil
+local walkOnWaterConnection = nil
+local waterHeight = 200 -- default height
+
+-- Prevent sea damage (client side)
+local function disableWaterDamage()
+    for _, v in pairs(getgc(true)) do
+        if type(v) == "function" and islclosure(v) and getfenv(v).script and tostring(getfenv(v).script) == "SeaDamageScript" then
+            hookfunction(v, function() return end) -- disables damage
+        end
+    end
+end
+
+local function setWalkOnWater(enabled)
+    if enabled then
+        disableWaterDamage()
+
+        if not waterPart then
+            waterPart = Instance.new("Part")
+            waterPart.Size = Vector3.new(1000, 1, 1000)
+            waterPart.Anchored = true
+            waterPart.Transparency = 1
+            waterPart.CanCollide = true
+            waterPart.Name = "WalkOnWaterPart"
+            waterPart.Parent = workspace
+        end
+
+        if not walkOnWaterConnection then
+            walkOnWaterConnection = RunService.Heartbeat:Connect(function()
+                local root = game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+                if root then
+                    waterPart.Position = Vector3.new(root.Position.X, waterHeight, root.Position.Z)
+                end
+            end)
+        end
+    else
+        if walkOnWaterConnection then
+            walkOnWaterConnection:Disconnect()
+            walkOnWaterConnection = nil
+        end
+        if waterPart then
+            waterPart:Destroy()
+            waterPart = nil
+        end
+    end
+end
+
+local WalkOnWaterToggle = SeaEventsTab:CreateToggle({
+    Name = "Walk on Water",
+    CurrentValue = false,
+    Flag = "WalkOnWaterToggle",
+    Callback = function(Value)
+        setWalkOnWater(Value)
+    end,
+})
+
+-- Slider for water height
+local WalkOnWaterHeightSlider = SeaEventsTab:CreateSlider({
+    Name = "Water Walk Height",
+    Range = {100, 500},
+    Increment = 10,
+    CurrentValue = 200,
+    Flag = "WalkOnWaterHeight",
+    Callback = function(Value)
+        waterHeight = Value
+    end,
+})
+
+
 
     ----------------------------------------------------------------
     -- 🏝️ Island Events Tab (YOUR ORIGINAL CONTENT – unchanged)
