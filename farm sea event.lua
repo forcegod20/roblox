@@ -843,25 +843,110 @@ PvPTab:CreateToggle({
     end
 })
 
-
 -- Player Settings Section
 local PlayerSettingsSection = PvPTab:CreateSection("Player Settings")
 
+-- ==== FAST SPEED (Physics Boost, no noclip) ====
+local Players    = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+
+local fastEnabled = false
+local fastSpeed   = 64 -- studs/sec (≈4x normal)
+
+-- rebind character refs on respawn
+local char, hum, hrp
+local function bindCharacter(c)
+    char = c
+    hum  = c:WaitForChild("Humanoid", 10)
+    hrp  = c:WaitForChild("HumanoidRootPart", 10)
+end
+bindCharacter(LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait())
+LocalPlayer.CharacterAdded:Connect(bindCharacter)
+
+-- GUI: slider + toggle
 PvPTab:CreateSlider({
-    Name = "Player Speed",
-    Range = {20, 200},
-    Increment = 1,
-    Suffix = " Speed",
-    CurrentValue = 20,
-    Flag = "PlayerSpeed",
-    Callback = function(Value)
-        local plr = game.Players.LocalPlayer
-        if plr.Character and plr.Character:FindFirstChildOfClass("Humanoid") then
-            plr.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = Value
+    Name = "Fast Speed (studs/s)",
+    Range = {16, 160},      -- 1x to 10x
+    Increment = 4,
+    Suffix = " studs/s",
+    CurrentValue = fastSpeed,
+    Flag = "FastSpeed_Value",
+    Callback = function(v)
+        fastSpeed = v
+    end
+})
+
+PvPTab:CreateToggle({
+    Name = "Fast Speed",
+    CurrentValue = false,
+    Flag = "FastSpeed_Toggle",
+    Callback = function(v)
+        fastEnabled = v
+        -- optional: when disabling, zero XZ velocity to stop sliding
+        if not v and hrp then
+            local vy = hrp.AssemblyLinearVelocity.Y
+            hrp.AssemblyLinearVelocity = Vector3.new(0, vy, 0)
         end
     end
 })
 
+-- core loop: push horizontal velocity toward desired speed; keep vertical unchanged
+RunService.Heartbeat:Connect(function()
+    if not fastEnabled or not hum or not hrp then return end
+    local dir = hum.MoveDirection
+    local v   = hrp.AssemblyLinearVelocity
+    if dir.Magnitude > 0 then
+        local desiredXZ = dir.Unit * fastSpeed
+        hrp.AssemblyLinearVelocity = Vector3.new(desiredXZ.X, v.Y, desiredXZ.Z)
+    else
+        -- no input: stop horizontal drift
+        hrp.AssemblyLinearVelocity = Vector3.new(0, v.Y, 0)
+    end
+end)
+-- ==== /FAST SPEED ====
+
+
+-- Super Fast Speed (CFrame Noclip based)
+local superFastEnabled = false
+local superFastSpeed = 3 -- default multiplier
+
+PvPTab:CreateSlider({
+    Name = "Super Fast Speed",
+    Range = {1, 10},
+    Increment = 1,
+    Suffix = "x",
+    CurrentValue = 3,
+    Flag = "SuperFastSlider",
+    Callback = function(Value)
+        superFastSpeed = Value
+    end
+})
+
+PvPTab:CreateToggle({
+    Name = "Super Fast Speed",
+    CurrentValue = false,
+    Flag = "SuperFastSpeed",
+    Callback = function(Value)
+        superFastEnabled = Value
+    end
+})
+
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+RunService.RenderStepped:Connect(function()
+    if superFastEnabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        local hrp = LocalPlayer.Character.HumanoidRootPart
+        local moveDir = LocalPlayer.Character:FindFirstChildOfClass("Humanoid").MoveDirection
+        if moveDir.Magnitude > 0 then
+            hrp.CFrame = hrp.CFrame + (moveDir * superFastSpeed)
+        end
+    end
+end)
+
+-- Jump Power Slider
 PvPTab:CreateSlider({
     Name = "Jump Power",
     Range = {50, 500},
@@ -877,24 +962,54 @@ PvPTab:CreateSlider({
     end
 })
 
+-- Infinite Jump
+local UserInputService = game:GetService("UserInputService")
+local infiniteJumpEnabled = false
+
 PvPTab:CreateToggle({
     Name = "Infinite Jump",
     CurrentValue = false,
     Flag = "InfiniteJump",
     Callback = function(Value)
-        print("Infinite Jump:", Value)
+        infiniteJumpEnabled = Value
     end
 })
+
+UserInputService.JumpRequest:Connect(function()
+    if infiniteJumpEnabled then
+        local plr = game.Players.LocalPlayer
+        if plr.Character and plr.Character:FindFirstChildOfClass("Humanoid") then
+            plr.Character:FindFirstChildOfClass("Humanoid"):ChangeState(Enum.HumanoidStateType.Jumping)
+        end
+    end
+end)
+
+-- No Clip
+local noclipEnabled = false
 
 PvPTab:CreateToggle({
     Name = "No Clip",
     CurrentValue = false,
     Flag = "NoClip",
     Callback = function(Value)
-        print("No Clip:", Value)
+        noclipEnabled = Value
     end
 })
 
+RunService.Stepped:Connect(function()
+    if noclipEnabled then
+        local char = game.Players.LocalPlayer.Character
+        if char then
+            for _, part in pairs(char:GetDescendants()) do
+                if part:IsA("BasePart") and part.CanCollide == true then
+                    part.CanCollide = false
+                end
+            end
+        end
+    end
+end)
+
+-- No Stun (placeholder)
 PvPTab:CreateToggle({
     Name = "No Stun",
     CurrentValue = false,
@@ -904,15 +1019,54 @@ PvPTab:CreateToggle({
     end
 })
 
+-- Camera Lock (GUI + L key)
+local Camera = workspace.CurrentCamera
+local cameraLockEnabled = false
+local lockedTarget = nil
+
 PvPTab:CreateToggle({
     Name = "Camera Lock",
     CurrentValue = false,
     Flag = "CameraLock",
     Callback = function(Value)
-        print("Camera Lock:", Value)
+        cameraLockEnabled = Value
+        if not Value then
+            lockedTarget = nil
+            Camera.CameraSubject = LocalPlayer.Character:WaitForChild("Humanoid")
+        end
     end
 })
 
+-- Bind L key to toggle
+UserInputService.InputBegan:Connect(function(input, gpe)
+    if not gpe and input.KeyCode == Enum.KeyCode.L then
+        cameraLockEnabled = not cameraLockEnabled
+    end
+end)
+
+-- Lock camera
+RunService.RenderStepped:Connect(function()
+    if cameraLockEnabled then
+        local closestDist = math.huge
+        local closestPlayer = nil
+        for _, plr in pairs(Players:GetPlayers()) do
+            if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+                local dist = (plr.Character.HumanoidRootPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+                if dist < closestDist then
+                    closestDist = dist
+                    closestPlayer = plr
+                end
+            end
+        end
+        if closestPlayer then
+            lockedTarget = closestPlayer
+            local hrp = closestPlayer.Character:FindFirstChild("HumanoidRootPart")
+            if hrp then
+                Camera.CFrame = CFrame.new(Camera.CFrame.Position, hrp.Position)
+            end
+        end
+    end
+end)
 
 -- Race Section
 local RaceSection = PvPTab:CreateSection("Race")
