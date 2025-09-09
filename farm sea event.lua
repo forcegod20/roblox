@@ -1319,8 +1319,9 @@ end)
 ----------------------------------------------------------------
 
 -- 📌 ESP GUI FULLY FUNCTIONAL
--- ✅ ESP (Player untouched, Fruit shows exact name, all with distance)
+-- ✅ Player ESP with colored name, health bar, fast updates; Fruit, Chest, Boat, Island ESP
 
+local RunService = game:GetService("RunService")
 local EspSection = VisualsTab:CreateSection("ESP")
 
 local espNameSize = 12
@@ -1343,36 +1344,81 @@ local function clearEsp(type)
     espObjects[type] = {}
 end
 
--- Create Billboard with distance updater
-local function makeBillboard(obj, displayName, type)
+-- Determine color based on team
+local function getPlayerColor(player)
+    local teamName = player.Team and player.Team.Name or ""
+    if teamName:lower():find("pirate") then
+        return Color3.fromRGB(255, 0, 0)
+    elseif teamName:lower():find("marine") then
+        return Color3.fromRGB(0, 0, 255)
+    else
+        return Color3.fromRGB(255, 255, 255)
+    end
+end
+
+-- Health bar color based on health %
+local function getHealthColor(humanoid)
+    local percent = humanoid.Health / humanoid.MaxHealth
+    if percent > 0.6 then
+        return Color3.fromRGB(0, 255, 0)
+    elseif percent > 0.3 then
+        return Color3.fromRGB(255, 255, 0)
+    else
+        return Color3.fromRGB(255, 0, 0)
+    end
+end
+
+-- Create Billboard with fast updates
+local function makeBillboard(obj, displayName, type, humanoid, player)
     if not obj or not obj:IsA("BasePart") then return end
 
     local bb = Instance.new("BillboardGui")
     bb.Adornee = obj
     bb.Size = UDim2.new(0,200,0,50)
     bb.AlwaysOnTop = true
-    bb.Parent = obj
+    bb.Parent = game.CoreGui
 
     local label = Instance.new("TextLabel")
     label.Name = "EspLabel"
-    label.Size = UDim2.new(1,0,1,0)
+    label.Size = UDim2.new(1,0,0.7,0)
     label.BackgroundTransparency = 1
-    label.Text = displayName
-    label.TextColor3 = Color3.new(1,1,1)
-    label.TextStrokeTransparency = 0
     label.Font = Enum.Font.SourceSansBold
     label.TextSize = espNameSize
     label.Parent = bb
 
-    -- Update distance every frame
-    task.spawn(function()
-        while bb.Parent and espEnabled[type] do
-            local lp = game.Players.LocalPlayer
-            if lp and lp.Character and lp.Character:FindFirstChild("HumanoidRootPart") then
-                local dist = math.floor((lp.Character.HumanoidRootPart.Position - obj.Position).Magnitude)
-                label.Text = string.format("%s (%dm)", displayName, dist)
-            end
-            task.wait(0.2) -- update every 0.2s
+    local healthBar
+    if humanoid then
+        healthBar = Instance.new("Frame")
+        healthBar.Name = "HealthBar"
+        healthBar.Size = UDim2.new(humanoid.Health/humanoid.MaxHealth,0,0.1,0)
+        healthBar.Position = UDim2.new(0,0,0.7,0)
+        healthBar.BackgroundColor3 = getHealthColor(humanoid)
+        healthBar.BorderSizePixel = 1
+        healthBar.Parent = bb
+    end
+
+    -- Update every frame
+    local conn
+    conn = RunService.RenderStepped:Connect(function()
+        if not bb.Parent or (type == "Player" and (not humanoid or not humanoid.Parent)) then
+            conn:Disconnect()
+            return
+        end
+
+        local lp = game.Players.LocalPlayer
+        local dist = 0
+        if lp and lp.Character and lp.Character:FindFirstChild("HumanoidRootPart") then
+            dist = math.floor((lp.Character.HumanoidRootPart.Position - obj.Position).Magnitude)
+        end
+
+        if humanoid and player then
+            label.Text = string.format("%s (%dm)", displayName, dist)
+            label.TextColor3 = getPlayerColor(player)
+            healthBar.Size = UDim2.new(humanoid.Health/humanoid.MaxHealth,0,0.1,0)
+            healthBar.BackgroundColor3 = getHealthColor(humanoid)
+        else
+            label.Text = string.format("%s (%dm)", displayName, dist)
+            label.TextColor3 = Color3.fromRGB(255,255,255)
         end
     end)
 
@@ -1388,14 +1434,14 @@ local function enableEsp(type, state)
     if type == "Player" then
         for _, plr in pairs(game.Players:GetPlayers()) do
             if plr ~= game.Players.LocalPlayer and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-                makeBillboard(plr.Character.HumanoidRootPart, plr.Name, "Player")
+                makeBillboard(plr.Character.HumanoidRootPart, plr.Name, "Player", plr.Character:FindFirstChild("Humanoid"), plr)
             end
         end
         game.Players.PlayerAdded:Connect(function(plr)
             plr.CharacterAdded:Connect(function(char)
                 task.wait(1)
                 if espEnabled.Player and char:FindFirstChild("HumanoidRootPart") then
-                    makeBillboard(char.HumanoidRootPart, plr.Name, "Player")
+                    makeBillboard(char.HumanoidRootPart, plr.Name, "Player", char:FindFirstChild("Humanoid"), plr)
                 end
             end)
         end)
@@ -1440,35 +1486,50 @@ VisualsTab:CreateToggle({
     Name = "ESP Player",
     CurrentValue = false,
     Flag = "EspPlayer",
-    Callback = function(Value) enableEsp("Player", Value) end
+    Callback = function(Value)
+        enableEsp("Player", Value)
+        print("ESP Player button clicked. Value:", Value)
+    end
 })
 
 VisualsTab:CreateToggle({
     Name = "ESP Fruit",
     CurrentValue = false,
     Flag = "EspFruit",
-    Callback = function(Value) enableEsp("Fruit", Value) end
+    Callback = function(Value)
+        enableEsp("Fruit", Value)
+        print("ESP Fruit button clicked. Value:", Value)
+    end
 })
 
 VisualsTab:CreateToggle({
     Name = "ESP Chest",
     CurrentValue = false,
     Flag = "EspChest",
-    Callback = function(Value) enableEsp("Chest", Value) end
+    Callback = function(Value)
+        enableEsp("Chest", Value)
+        print("ESP Chest button clicked. Value:", Value)
+    end
 })
 
 VisualsTab:CreateToggle({
     Name = "ESP Boat",
     CurrentValue = false,
     Flag = "EspBoat",
-    Callback = function(Value) enableEsp("Boat", Value) end
+    Callback = function(Value)
+        enableEsp("Boat", Value)
+        print("ESP Boat button clicked. Value:", Value)
+    end
 })
 
 VisualsTab:CreateToggle({
     Name = "ESP Island",
     CurrentValue = false,
     Flag = "EspIsland",
-    Callback = function(Value) enableEsp("Island", Value) end
+    Callback = function(Value)
+        enableEsp("Island", Value)
+        print("ESP Island button clicked. Value:", Value)
+    end
 })
 
 VisualsTab:CreateSlider({
@@ -1486,10 +1547,9 @@ VisualsTab:CreateSlider({
                 end
             end
         end
+        print("ESP Name Size slider changed. Value:", Value)
     end
 })
-
-
 
 VisualsTab:CreateLabel("More Coming Soon")
 
