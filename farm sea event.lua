@@ -1101,54 +1101,158 @@ PvPTab:CreateToggle({
     end
 })
 
--- Camera Lock (GUI + L key)
+-- Camera Lock (Sticky Lock + Aimbot Skills + Name Lock)
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 local Camera = workspace.CurrentCamera
+local LocalPlayer = Players.LocalPlayer
+local mouse = LocalPlayer:GetMouse()
+
 local cameraLockEnabled = false
 local lockedTarget = nil
+local lockBillboard = nil -- UI marker
 
-PvPTab:CreateToggle({
-    Name = "Camera Lock",
-    CurrentValue = false,
-    Flag = "CameraLock",
-    Callback = function(Value)
-        cameraLockEnabled = Value
-        if not Value then
-            lockedTarget = nil
-            Camera.CameraSubject = LocalPlayer.Character:WaitForChild("Humanoid")
+-- Create billboard marker
+local function createMarker(targetChar)
+    if not targetChar then return end
+    local head = targetChar:FindFirstChild("Head") or targetChar:FindFirstChildWhichIsA("BasePart")
+    if not head then return end
+
+    if lockBillboard then
+        lockBillboard:Destroy()
+    end
+
+    lockBillboard = Instance.new("BillboardGui")
+    lockBillboard.Size = UDim2.new(0, 100, 0, 40)
+    lockBillboard.StudsOffset = Vector3.new(0, 3, 0)
+    lockBillboard.AlwaysOnTop = true
+    lockBillboard.Name = "LockMarker"
+    lockBillboard.Parent = head
+
+    local textLabel = Instance.new("TextLabel")
+    textLabel.Size = UDim2.new(1, 0, 1, 0)
+    textLabel.BackgroundTransparency = 1
+    textLabel.Text = "LOCKED"
+    textLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+    textLabel.TextStrokeTransparency = 0
+    textLabel.Font = Enum.Font.SourceSansBold
+    textLabel.TextScaled = true
+    textLabel.Parent = lockBillboard
+end
+
+-- Remove marker
+local function removeMarker()
+    if lockBillboard then
+        lockBillboard:Destroy()
+        lockBillboard = nil
+    end
+end
+
+-- Try to find player near mouse (body OR name position)
+local function getPlayerFromMouse()
+    -- Direct hit
+    if mouse.Target then
+        local char = mouse.Target:FindFirstAncestorOfClass("Model")
+        if char and char:FindFirstChild("Humanoid") then
+            local plr = Players:GetPlayerFromCharacter(char)
+            if plr and plr ~= LocalPlayer then
+                return plr
+            end
         end
     end
-})
 
--- Bind L key to toggle
-UserInputService.InputBegan:Connect(function(input, gpe)
-    if not gpe and input.KeyCode == Enum.KeyCode.L then
-        cameraLockEnabled = not cameraLockEnabled
-    end
-end)
-
--- Lock camera
-RunService.RenderStepped:Connect(function()
-    if cameraLockEnabled then
-        local closestDist = math.huge
-        local closestPlayer = nil
-        for _, plr in pairs(Players:GetPlayers()) do
-            if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-                local dist = (plr.Character.HumanoidRootPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+    -- Screen-space (like Observation Haki)
+    local mousePos = UserInputService:GetMouseLocation()
+    local closestPlr, closestDist = nil, 50 -- px radius
+    for _, plr in pairs(Players:GetPlayers()) do
+        if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("Head") then
+            local headPos, onScreen = Camera:WorldToViewportPoint(plr.Character.Head.Position + Vector3.new(0, 3, 0))
+            if onScreen then
+                local dist = (Vector2.new(headPos.X, headPos.Y) - Vector2.new(mousePos.X, mousePos.Y)).Magnitude
                 if dist < closestDist then
                     closestDist = dist
-                    closestPlayer = plr
+                    closestPlr = plr
                 end
             end
         end
-        if closestPlayer then
-            lockedTarget = closestPlayer
-            local hrp = closestPlayer.Character:FindFirstChild("HumanoidRootPart")
-            if hrp then
-                Camera.CFrame = CFrame.new(Camera.CFrame.Position, hrp.Position)
+    end
+    return closestPlr
+end
+
+-- Lock onto player
+local function lockOnTarget(plr)
+    if plr and plr.Character and plr.Character:FindFirstChild("Humanoid") then
+        lockedTarget = plr
+        cameraLockEnabled = true
+        print("[CameraLock] Locked onto:", plr.Name)
+        createMarker(plr.Character)
+        return true
+    end
+    return false
+end
+
+-- Clear lock
+local function clearLockedTarget(reason)
+    if lockedTarget then
+        print("[CameraLock] Cleared lock on:", lockedTarget.Name, "Reason:", reason or "unknown")
+    end
+    lockedTarget = nil
+    cameraLockEnabled = false
+    removeMarker()
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+        Camera.CameraSubject = LocalPlayer.Character.Humanoid
+    end
+end
+
+-- Toggle with L key
+UserInputService.InputBegan:Connect(function(input, gpe)
+    if gpe then return end
+    if input.KeyCode == Enum.KeyCode.L then
+        if cameraLockEnabled then
+            local newTarget = getPlayerFromMouse()
+            if newTarget and newTarget ~= lockedTarget then
+                lockOnTarget(newTarget)
+                print("[CameraLock] Switched lock via L key")
+            else
+                clearLockedTarget("L key toggle off")
+            end
+        else
+            local target = getPlayerFromMouse()
+            if target then
+                lockOnTarget(target)
+                print("[CameraLock] Enabled via L key")
+            else
+                print("[CameraLock] No valid target under mouse/name")
             end
         end
     end
 end)
+
+-- Aimbot + Skill Lock
+RunService.RenderStepped:Connect(function()
+    if cameraLockEnabled and lockedTarget and lockedTarget.Character and lockedTarget.Character:FindFirstChild("HumanoidRootPart") then
+        local hrp = lockedTarget.Character.HumanoidRootPart
+
+        -- Force camera aim at target
+        local camPos = Camera.CFrame.Position
+        Camera.CFrame = CFrame.lookAt(camPos, hrp.Position)
+
+        -- Make skills always aim at locked player
+        mouse.Hit = hrp.CFrame
+        mouse.Target = hrp
+
+        -- Refresh marker
+        if not lockBillboard or (not lockBillboard.Parent or lockBillboard.Parent.Parent ~= lockedTarget.Character) then
+            createMarker(lockedTarget.Character)
+        end
+    else
+        if lockBillboard then
+            removeMarker()
+        end
+    end
+end)
+
 
 -- Race Section
 local RaceSection = PvPTab:CreateSection("Race")
