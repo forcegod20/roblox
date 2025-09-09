@@ -557,9 +557,9 @@ local WalkOnWaterToggle = SeaEventsTab:CreateToggle({
 -- Slider for water height
 local WalkOnWaterHeightSlider = SeaEventsTab:CreateSlider({
     Name = "Water Walk Height",
-    Range = {100, 500},
-    Increment = 10,
-    CurrentValue = 200,
+    Range = {1, 100},
+    Increment = 5,
+    CurrentValue = 10,
     Flag = "WalkOnWaterHeight",
     Callback = function(Value)
         waterHeight = Value
